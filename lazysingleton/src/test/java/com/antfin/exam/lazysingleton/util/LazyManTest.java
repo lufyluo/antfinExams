@@ -26,6 +26,7 @@ public class LazyManTest {
         while (numTasks.get()<maxNumTask){
             Future future =pool.submit(new Thread() {
                 public void run() {
+                    numTasks.addAndGet(1);
                     LazyMan lazyMan = LazyMan.getInstance();
                     assertEquals(LazyMan.getInitCount(),1);
                 }
