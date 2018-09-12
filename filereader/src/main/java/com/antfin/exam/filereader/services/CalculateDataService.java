@@ -44,17 +44,13 @@ public class CalculateDataService {
     }
 
     private void lockTask() {
-        while (!pool.isTerminated()) {
+        do{
             List<TestData> temps = new ArrayList<TestData>();
             temps.addAll(datas);
             results = sort1(temps);
             printArray(results);
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
+        while (!pool.isTerminated());
     }
 
     private void printArray(List<TestData> target){
@@ -65,7 +61,7 @@ public class CalculateDataService {
             stringBuilder.append(target.get(i).toString());
         }
         try {
-            new TxtDataWriter().appendMethodB("C:\\test\\result.txt",stringBuilder.toString()+" \r\n");
+            new TxtDataWriter().append("C:\\test\\result.txt",stringBuilder.toString()+" \r\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -85,6 +81,7 @@ public class CalculateDataService {
                 }
             });
         }
+        pool.shutdownNow();
     }
 
     private void convert(@NonNull String[] files) {
