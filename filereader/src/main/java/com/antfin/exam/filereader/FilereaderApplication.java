@@ -12,6 +12,6 @@ public class FilereaderApplication {
 	public static void main(String[] args) throws ExecutionException, InterruptedException {
 		SpringApplication.run(FilereaderApplication.class, args);
 		calculateDataService.method1();
-		Thread.sleep(2000);
+		Thread.sleep(3000);
 	}
 }

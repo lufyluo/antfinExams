@@ -1,6 +1,7 @@
 package com.antfin.exam.filereader.utils;
 
 import com.antfin.exam.filereader.Models.TestData;
+import org.springframework.util.ResourceUtils;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ public class TxtDataReader {
         File file;
         BufferedReader reader = null;
         try {
-            file = new File(fileName);
+            file = ResourceUtils.getFile(fileName);
             reader = new BufferedReader(new FileReader(file));
             String tempString = null;
             while ((tempString = reader.readLine()) != null) {

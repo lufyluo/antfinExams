@@ -22,9 +22,9 @@ public class CalculateDataService {
     private final int maxThreadNum = 10;
     private LinkedBlockingQueue<String> concurrentLinkedQueue = new LinkedBlockingQueue<String>();
     public CalculateDataService() {
-        concurrentLinkedQueue.offer("C:\\test\\1.txt");
-        concurrentLinkedQueue.offer("C:\\test\\2.txt");
-        concurrentLinkedQueue.offer("C:\\test\\3.txt");
+        concurrentLinkedQueue.offer("classpath:test\\1.txt");
+        concurrentLinkedQueue.offer("classpath:test\\2.txt");
+        concurrentLinkedQueue.offer("classpath:test\\3.txt");
         pool =Executors.newFixedThreadPool(maxThreadNum);
     }
 
@@ -61,7 +61,7 @@ public class CalculateDataService {
             stringBuilder.append(target.get(i).toString());
         }
         try {
-            new TxtDataWriter().append("C:\\test\\result.txt",stringBuilder.toString()+" \r\n");
+            new TxtDataWriter().append("c:\\test\\","result.txt",stringBuilder.toString()+" \r\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
