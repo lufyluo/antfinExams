@@ -1,9 +1,9 @@
 package com.antfin.exam.filereader.services;
 
 import com.antfin.exam.filereader.Models.TestData;
-import com.antfin.exam.filereader.utils.TxtDataFactory;
 import com.antfin.exam.filereader.utils.TxtDataReader;
 import com.antfin.exam.filereader.utils.TxtDataWriter;
+
 import org.springframework.lang.NonNull;
 
 import java.io.IOException;
@@ -11,63 +11,85 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CalculateDataService {
-    private TxtDataFactory txtDataFactory;
-    private String[] files = new String[3];
     private List<TestData> datas = new ArrayList<TestData>();
     private List<TestData> results = new ArrayList<TestData>();
-    private ExecutorService pool ;
+    private ExecutorService pool;
     private final int maxThreadNum = 10;
     private LinkedBlockingQueue<String> concurrentLinkedQueue = new LinkedBlockingQueue<String>();
+    private AtomicBoolean reaaderState = new AtomicBoolean(true);
+    private AtomicBoolean writorState = new AtomicBoolean(true);
+
     public CalculateDataService() {
         concurrentLinkedQueue.offer("classpath:test\\1.txt");
         concurrentLinkedQueue.offer("classpath:test\\2.txt");
         concurrentLinkedQueue.offer("classpath:test\\3.txt");
-        pool =Executors.newFixedThreadPool(maxThreadNum);
+        pool = Executors.newFixedThreadPool(maxThreadNum);
     }
 
     public void method1() throws ExecutionException, InterruptedException {
-        fillData();
+        readData();
         calculateData();
+    }
+
+    public boolean state() {
+        return reaaderState.get() && writorState.get();
+    }
+
+    public void close() {
+        pool.shutdownNow();
+        reaaderState.set(false);
+        writorState.set(false);
     }
 
     private void calculateData() {
         Thread t = new Thread() {
             @Override
             public void run() {
-               lockTask();
+                while (reaaderState.get()) {
+                    writeResult();
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                pool.shutdownNow();
+                writeResult();
+                writorState.set(false);
             }
         };
         t.run();
     }
 
-    private void lockTask() {
-        do{
-            List<TestData> temps = new ArrayList<TestData>();
-            temps.addAll(datas);
-            results = sort1(temps);
-            printArray(results);
-        }
-        while (!pool.isTerminated());
+    private void writeResult() {
+        List<TestData> temps = new ArrayList<TestData>();
+        temps.addAll(datas);
+        results = sort1(temps);
+        writeArray(results);
     }
 
-    private void printArray(List<TestData> target){
-        if(target.size()==0)
+    private void writeArray(List<TestData> target) {
+        if (target.size() == 0)
             return;
         StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0;i<target.size();i++) {
+        for (int i = 0; i < target.size(); i++) {
             stringBuilder.append(target.get(i).toString());
         }
         try {
-            new TxtDataWriter().append("c:\\test\\","result.txt",stringBuilder.toString()+" \r\n");
+            new TxtDataWriter().append("c:\\test\\", "result.txt", stringBuilder.toString() + " \r\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void fillData() throws ExecutionException, InterruptedException {
+    private void readData() throws ExecutionException, InterruptedException {
 
         for (int i = 0, l = concurrentLinkedQueue.size(); i < l; i++) {
             pool.execute(new Runnable() {
@@ -75,13 +97,15 @@ public class CalculateDataService {
                 public void run() {
                     try {
                         datas.addAll(new TxtDataReader().readFileByLines(concurrentLinkedQueue.poll()));
+                        if (concurrentLinkedQueue.size() == 0) {
+                            reaaderState.set(false);
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
             });
         }
-        pool.shutdownNow();
     }
 
     private void convert(@NonNull String[] files) {
@@ -97,7 +121,7 @@ public class CalculateDataService {
         while (iterator.hasNext()) {
             TestData temp = iterator.next();
             TestData testData = getSameGroupId(target, temp.getGroupId());
-            if(testData == null ){
+            if (testData == null) {
                 target.add(temp);
                 continue;
             }
@@ -114,7 +138,7 @@ public class CalculateDataService {
         Iterator<TestData> iterator = target.iterator();
         while (iterator.hasNext()) {
             TestData testData = iterator.next();
-            if (testData.getGroupId().equals( groupId)) {
+            if (testData.getGroupId().equals(groupId)) {
                 return testData;
             }
         }
