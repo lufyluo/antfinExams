@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
 
-public class ConcurrencyTest extends JUnitExtensions.MultiThreadedTestCase {
+public class ConcurrencySpinLockTest extends JUnitExtensions.MultiThreadedTestCase {
     private SpinLock spinLock = new SpinLock();
     private AtomicInteger currentNum = new AtomicInteger(0);
     private static int preNum = 0;
@@ -16,7 +16,7 @@ public class ConcurrencyTest extends JUnitExtensions.MultiThreadedTestCase {
     /**
      * Simple constructor.
      */
-    public ConcurrencyTest(String s) {
+    public ConcurrencySpinLockTest(String s) {
         super(s);
     }
 
